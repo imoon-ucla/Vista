@@ -1,6 +1,6 @@
 # Vista
 
-Visualization of time series data in PPI
+Visualization of time series data in PPI. This application works dynamically with PDS-PPI ID, but this file is modified as a sample.
 
 ---
 
@@ -10,4 +10,7 @@ Visualization of time series data in PPI
 - [js](js/) : Javasccript files. Dygraph javascript file and vista javascript file 
 - [css](css/) : Style sheet file
 
+
+# Dygraph
+open source JavaScript charting library. 
 
