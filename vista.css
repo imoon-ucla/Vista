@@ -1,0 +1,139 @@
+body {
+	font-family:Arial,Tahoma,Verdana, Helvetica, sans-serif;
+	font-size: 12px;
+	background-color: #F1F2F4;
+	margin: 0;
+    padding: 0;
+    min-width:800px;   
+}
+ .chart-container { 
+      	overflow: hidden; 
+      	width: 100%; 
+      	min-width:800px;
+      	}
+      .line {
+        visibility: hidden;
+        background-color: black;
+        position: absolute;
+        pointer-events: none;  /* let mouse events fall through to the chart */
+      }
+      .yline {
+        width: 100%;
+        height: 1px;
+      }
+      .clear { clear: both; }
+      .xline {
+        height: 100%;
+        width: 1px;
+      }
+#control_pannel{
+	background-color: #334553;
+	color: #FFFFFF;
+}
+#product_title{
+	font-size:16px;
+}
+a:link {
+  color: #04A3C6;
+}
+
+/* visited link */
+a:visited {
+  color: #04A3C6;
+}
+
+/* mouse over link */
+a:hover {
+  color: #D58AD9;
+}
+
+/* selected link */
+a:active {
+  color:#04A3C6;
+}
+
+.multiselect {
+        width: 200px;
+    }
+    .selectBox {
+        position: relative;
+    }
+    .selectBox select {
+        width: 100%;
+        font-weight: bold;
+    }
+    .overSelect {
+        position: absolute;
+       
+        left: 0; right: 0; top: 0; bottom: 0;
+    }
+    
+.scrollbar
+	{
+		margin-left: 30px;
+		float: left;
+		height: 200px;
+		width: 160px;
+		background: #F5F5F5;
+		overflow-y: scroll;
+		margin-bottom: 25px;
+	}
+
+	.force-overflow
+	{
+		min-height: 160px;
+	}
+ #checkboxes {
+        display: none;
+        position: absolute;
+        z-index: 110;
+        background-color: #ffffff;
+        color:#21352C;
+        border: 1px #dadada solid;
+        width: 200px;
+    }
+    #checkboxes label {
+        display: block;
+    }
+    #checkboxes label:hover {
+        background-color: #1e90ff;
+    }
+ .fieldform{ margin-left: 10px; font-size:10pt;height:120px; overflow:auto; border-width:2px}
+  .descdisplay{ margin-left: 0px; font-size:10pt;height:40px; color:#FFFFFF; overflow:auto; border-width:2px; background-color:#5C2FB1}    
+.row {
+  display: flex;
+}
+.titlerow{
+   display: flex;
+   float: center;
+   font-weight:bold;
+   font-size: 14px;
+   /*background:#534533;*/
+   color:#534533;
+}
+/* Create two equal columns that sits next to each other */
+.column {
+  flex: 50%;
+}
+.container {
+  display: table;
+}
+.main {
+  display: table-cell;
+}
+.sidebar {
+  display: table-cell;
+  background-color: Tomato;
+}	
+.button {
+  background-color: #4CAF50;
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  margin: 4px 2px;
+  cursor: pointer;
+}
