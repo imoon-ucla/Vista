@@ -1,0 +1,92 @@
+{
+	"cols":9,
+	"stop_time":"2016-215T00:00:00.474",
+	"columns":
+		[{
+			"description":"Universal time of the sample at the spacecraft.  The time appears as 6 integer columns (year, day of year, hour, minute, seconds, millisecond). Individual elements of the time column are separated by a single ASCII space character and have leading zeros omitted.  The individual elements can be read by using the following FORTRAN format:'(2X,I4,1X,I3,3(1X,I2),1X,I3)' IYR IDOY IHR IMIN ISEC IMSEC ",
+			"no":1,
+			"name":"SAMPLE UTC",
+			"subColumn":false,
+			"type":"CHARACTER",
+			"objectType":"COLUMN"
+		},
+		{
+			"description":"Decimal day of year.  This column provides a second representation of the sample time.",
+			"no":2,
+			"name":"DECIMAL DAY",
+			"subColumn":false,
+			"type":"ASCII_REAL",
+			"objectType":"COLUMN"
+		},
+		{
+			"unit":"NT",
+			"description":"B-field X-component in Planetocentric coordinate system.",
+			"no":3,
+			"name":"BX PLANETOCENTRIC",
+			"subColumn":false,
+			"type":"ASCII_REAL",
+			"objectType":"COLUMN"
+		},
+		{
+			"unit":"NT",
+			"description":"B-field Y-component in Planetocentric coordinate system.",
+			"no":4,
+			"name":"BY PLANETOCENTRIC","subColumn":false,"type":"ASCII_REAL",
+			"objectType":"COLUMN"
+		},
+		{
+			"unit":"NT",
+			"description":"B-field Z-component in Planetocentric coordinate system.\n",
+			"no":5,
+			"name":"BZ PLANETOCENTRIC",
+			"subColumn":false,
+			"type":"ASCII_REAL",
+			"objectType":"COLUMN"
+		},
+		{
+			"description":"Instrument dynamic range identifier at time of the sample.\nPertains to B components.\n",
+			"no":6,
+			"name":"INSTRUMENT RANGE",
+			"subColumn":false,
+			"type":"ASCII_REAL",
+			"objectType":"COLUMN"
+		},
+		{
+			"unit":"KILOMETERS",
+			"description":"Spacecraft position X-component in Planetocentric coordinate system.",
+			"no":7,
+			"name":"X",
+			"subColumn":false,
+			"type":"ASCII_REAL",
+			"objectType":"COLUMN"
+		},
+		{
+			"unit":"KILOMETERS",
+			"description":"Spacecraft position Y-component in Planetocentric coordinate system.",
+			"no":8,
+			"name":"Y",
+			"subColumn":false,
+			"type":"ASCII_REAL",
+			"objectType":"COLUMN"
+		},
+		{	
+			"unit":"KILOMETERS",
+			"description":"Spacecraft position Z-component in Planetocentric coordinate system.",
+			"no":9,
+			"name":"Z",
+			"subColumn":false,
+			"type":"ASCII_REAL",
+			"objectType":"COLUMN"
+		}],
+	"object":"MAG DATA",
+	"instrument_name":"MAGNETOMETER",
+	"rows":86400,
+	"table_description":"The magnetic field data are stored in a fixed field ASCII table\nstructure that immediately follows the attached header.  This table\ncontains time-tagged rows of magnetic field values and instrument\ndynamic range identifiers.\n",
+	"tables":["MAG DATA"],
+	"instrument_id":"FGM",
+	"start_time":"2016-214T00:00:01.795",
+	"productdescription":"This file contains vector magnetic field data acquired by the\nFluxgate Magnetometer instrument aboard the Juno spacecraft.\nThe data are calibrated and provided in physical units (nT).\nThe data has been downsampled to 1 second to provide a more\ncompact dataset.  The data are expressed in\nPlanetocentric coordinates.\n\n",
+	"slot":"/data/CO-E_J_S_SW-CAPS-2-UNCALIBRATED-V1.0",
+	"targets":["JUPITER","SOLAR SYSTEM"],
+	"productname":"fgm_jno_l3_2016214pc_r1s_v01"
+}
