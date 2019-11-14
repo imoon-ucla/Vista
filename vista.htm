@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Vista - time series data plot</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7; IE=EmulateIE9">
+	<script src="js/jquery-1.7.1.min.js" type="text/javascript"></script>
+	<script src="js/dygraph-combined.js" type="text/javascript" ></script>
+	<link type="text/css" href="css/vista.css" rel="stylesheet" />
+	<link type="text/css" href="css/dygraph.css" rel="stylesheet" />
+	<script src="js/vista.js" type="text/javascript"></script>
+</head>
+<body>
+<div  id="control_pannel" style="display:none;">
+<table width=100%>
+	<tr>
+		<th colspan=4 align='left'>Data source : <span id="product_id"></span></th>
+		<td id="instrument_host" class="focus_cell" width=160 align="right"></td>
+		<td width="160" id="instrument"></td>
+		<td style="float:right;valign:top;color:#dddddd">Version: 1.1.1</td>
+	</tr>
+	<tr>
+		<td colspan=2><B>Record Range :</B> <input type=text id='start' name='start'  size=7 class="donotedit" value="1"> - <input type=text  size=7 id='ends' name='ends' value="2000" class="donotedit" readonly> / <span id="totalcounts"></span></td>					
+		<td  align="right"><span id="records_per_page"><B>Records per page </B> <input type=text id=rows name=rows value=2000 size=7 onchange="updategraphs();"></span></td>
+		<td align=left valign="top">
+			<div id="changedatasize">
+			<button  onClick="changeDataSize('+')">+</button><button onClick="changeDataSize('-')">-</button>
+			
+					</div></td>
+			
+		<td align="left" colspan=2><span id="object_area" style="display:none"><B>Data table: </B><span id="object_name"></span></span></td> 
+		<td><div class="overlay" >
+					<div class="multiselect" >
+		        		<div class="selectBox" onclick="showCheckboxes()" >
+			            	<select>
+			            		<option>Select Field</option>
+			            	</select>
+			            	<div class="overSelect"></div>
+			            
+		            	</div>
+		            	 <div id="checkboxes"  onmouseleave="showCheckboxes()"></div>	
+		            </div>
+					
+				</div>
+			</td>
+	</tr>
+	<tr><td valign="top" colspan=3><div id="pageview" style="align:left"></div></td>
+		<td colspan=3 id="product_time"></td>
+		<td align="right"><input type=button onclick="restoreAllZoom()" value="Restore All Zoom"></td>
+		
+		</tr>
+		<tr><td colspan=4 align="left"></td></tr>
+		<tr><th colspan=7 id="product_title" class="title" bgcolor="#5C6A75"></th></tr>
+</table>
+</div>
+	
+<div id="panel-main" class="chart-container"></div>
+	
+<script type="text/javascript">
+
+var info;
+//var id = QueryString.id;
+var id = "fgm_jno_l3_2016214pc_r1s_v01";
+var data = [];
+var start=1;
+var recordCounts=0;
+var visited=[];
+//var g=new Array();
+var panel=[];
+
+//var sync;
+var xline=[];
+var colors=[];
+var view_data_count=2000;
+var visible=[];
+var xline = [];
+var firstRow = 0;
+var labels=[];
+var timeindex=-1;
+var data_visible=[];
+var csvdata=null;
+var cols=[];
+var particledata=[];
+var xs=0;
+var datahandler=[], headers=[];
+var page=1;
+if(id){
+
+	info = JSON.parse(getJSON());
+	var meta_title=info.productname;
+	if(typeof(info.productname)!="undefined"){
+		document.getElementById("product_id").innerHTML="<a href='/search/view/?id="+id+"'>"+info.productname+"</a> ";
+	}else{
+		document.getElementById("product_id").innerHTML="<a href='/search/view/?id="+id+"'>"+id+"</a> ";
+	}
+	document.getElementById("control_pannel").style.display = 'block';
+	var rows=document.getElementById("rows").value;
+	if (rows == null || rows == ""){
+		rows=view_data_count;
+		document.getElementById("rows").value=view_data_count;
+	}
+	var keywords=info.productname;
+	document.getElementById("start").value=(page-1)*rows+1;
+	document.getElementById("ends").value=rows;
+	if(typeof(info.table_description)!="undefined"){
+		var description =info.table_description;
+		var description =description.replace("\n"," ");
+		$('meta[name=description]').remove();
+	    $('head').append( '<meta name="description" content="'+description+'">' );
+	}
+	if(typeof(info.object)!="undefined"){
+		document.getElementById("object_area").style.display='block';
+		document.getElementById("object_name").innerHTML=info.object;
+		
+		if(typeof(info.tables)!="undefined"){
+			if(info.tables.length>1){
+				var tempSel="<select id='data_table'>";
+				for(var i=0; i<info.tables.length; i++){
+					tempSel+="<option";
+					if(info.object ==info.tables[i]){
+						tempSel+=" SELECTED"
+					}
+					tempSel+=">"+info.tables[i]+"<opiton>";
+				}
+				tempSel+="</select>";
+				document.getElementById("object_name").innerHTML=tempSel;
+			}
+		}
+	}
+	var time_values=document.getElementById("product_time");
+    var isExistStartTime=false;
+	if(typeof(info.start_time)!="undefined"){
+    	time_values.innerHTML=info.start_time;
+    	isExistStartTime=true;
+    }
+	if(typeof(info.stop_time)!="undefined"){
+		if(isExistStartTime){
+			time_values.innerHTML+=" - ";
+		}
+		time_values.innerHTML+=info.stop_time;
+		
+	}
+	if(typeof(info.instrument_host_name)!="undefined"){
+		document.getElementById("instrument_host").innerHTML=info.instrument_host_name;
+		 meta_title+=" | "+info.instrument_host_name;
+	}
+	if(typeof(info.targets)!="undefined"){
+		document.getElementById("instrument_host").innerHTML+="&nbsp; &nbsp;&nbsp;<font color='#b0bec5'>TARGET NAME:</font>"+info.targets[0];
+		for(var j=1; j<info.targets.length; j++){
+			document.getElementById("instrument_host").innerHTML+=", "+info.targets[j];
+		}
+	}
+	if(typeof(info.instrument_name)!="undefined"){
+		document.getElementById("instrument").innerHTML=info.instrument_name;
+		meta_title+=" | "+info.instrument_name;
+		if(typeof(info.instrument_id)!="undefined"){
+			document.getElementById("instrument").innerHTML+="("+info.instrument_id+")";
+			meta_title+=" | "+info.instrument_id;
+		}
+		
+	}
+	if(typeof(info.productname)!="undefined"){
+		document.getElementById("product_title").innerHTML="<center>"+info.productname+"</B></center>";
+	}
+	
+	if(typeof(info.message)!="undefined"){
+		alert(info.message);
+	}
+	else{
+		//read data file
+		if(typeof(info.columns)!="undefined"){
+			var cols = info.columns;
+			var columns=document.getElementById("checkboxes");
+			for(var i=0; i<cols.length; i++){
+				data_visible.push(false);
+			}
+			for(var i=0; i<cols.length; i++){
+				if(cols[i].type=="TIME" || cols[i].type=="DATE" || cols[i].type=="DATETIME"|| cols[i].type=="ASCII_Date_Time_YMD"|| (cols[i].type=="DATE" && cols[i].name=="UTC") || (cols[i].type=="SignedMSB8" && cols[i].name=="epoch")){	
+					timeindex=i;
+					i=cols.length;
+				}
+			}
+			
+			if(typeof(info.rows)!="undefined"){
+				var span = document.getElementById("totalcounts");
+				span.innerHTML=info.rows;
+				recordCounts=info.rows;
+				
+				if(recordCounts<view_data_count){
+					document.getElementById("records_per_page").style.display ='none';
+					document.getElementById("changedatasize").style.display ='none';
+					document.getElementById("ends").value=recordCounts;
+					endofpage=recordCounts;
+					rows=recordCounts;
+				}
+			}
+			endofpage=parseInt((start-1))+parseInt(rows);
+			if(recordCounts>0){
+				//initailize visted
+				for(var i=0; i<recordCounts; i++){
+					visited.push(false);
+				}
+				if(endofpage>recordCounts) endofpage=recordCounts;
+			}
+		
+			var checkfields="";
+		
+			var xlabelIndex=0;
+		
+			csvdata=getData(start,endofpage);
+			if(csvdata!=null){
+				var temp=csvdata.split("\n");
+				var tempcols=temp[1].split(",");
+				
+				if(timeindex<0){
+					for(var i=0; i<cols.length; i++){
+						if(isDateTimeFormat(tempcols[i])==true){
+							timeindex=i;
+							i=cols.length;
+						}
+					}
+				}
+				if(timeindex>-1){
+					xlabelIndex=timeindex;	 
+					xs=timeindex+1;
+					datahandler.push({"name":cols[xlabelIndex].name,"data_visible":true,"index":xlabelIndex, "labelIndex":0});
+					labels.push(cols[xlabelIndex].name);
+					data_visible[timeindex]=true;
+				}
+				else{
+					datahandler.push({"name":"Record Count","data_visible":true,"index":xlabelIndex, "labelIndex":0});
+					labels.push("Record Count");
+					xs=1;
+				}
+				var lbl_index=0;
+				var v=0;
+				
+				for(var j=0; j<cols.length; j++){
+					var isData=true;
+					if(timeindex==j) isData=false;
+					else {
+						if(isNaN()){
+							if(isDateTimeFormat(tempcols[j])==true){
+								isData=false;
+							}
+						}
+					}
+					
+					if(cols[j].type.toUpperCase()=="CHARACTER" ){
+						if(isDateTimeFormat(tempcols[j])==false){
+									isData=false;
+						}
+					}
+					else if(cols[j].type.toLowerCase()=="unsignedbyte"){
+						isData=false;
+					}
+					
+					if(timeindex>-1){
+						if((cols[j].name=="ERTYEAR" && cols[j].unit.toLowerCase()=="year")|| cols[j].name=="ERTDOY" || cols[j].name=="ERTSEC"){
+							isData=false;
+						}
+					}
+					if(cols[j].name=="SCLOCK"){ //cols[j].name=="DATA_TOTAL"||
+						isData=false;
+					}
+					if(typeof(cols[j].objectType)!="undefined"){
+						if(cols[j].objectType=="CONTAINER"){
+							isData=false;
+						}	
+					}
+					if(typeof(cols[j].hasData)!="undefined"){
+						if(cols[j].hasData==false){
+							isData=false;
+						}
+					}
+					if(typeof(cols[j].subColumn)!="undefined"){
+						if(cols[j].subColumn==true){
+							isData=false;
+						}
+					}
+					
+					if(isData==true){
+						labels.push(cols[j].name);
+						
+						checkfields+="<label for='"+cols[j].name+"'><input type=checkbox id='"+cols[j].name+"' value='"+lbl_index+"' checked onchange='handledraw(this)'>"+cols[j].name+"</label>";
+							
+						var hasItem=false, isParticleData=false;
+						if(typeof(cols[j].items)!="undefined"){
+							hasItem=true;
+						}
+						if(typeof(cols[j].reference_type)!="undefined"){
+							if(cols[j].reference_type=="particle_observation_to_observation_values"){
+								isParticleData=true;
+									
+							}
+						}
+						data_visible[j]=true;
+						datahandler.push({"name":cols[j].name,"data_visible":true, "index":j, "lbl_index":lbl_index,"drawplot":true, "items":hasItem, "isParticleData":isParticleData});
+						lbl_index++;
+					}
+					
+				}
+				if(labels.length>colors_g.length){
+					for(var c=colors_g.length; c<labels.length; c++){
+						var color1='#'+(function lol(m,s,c){return s[m.floor(m.random() * s.length)] +
+							  (c && lol(m,s,c-1));})(Math,'0123456789ABCDEF',4);
+						colors_g.push(color1);
+					}
+				}
+				
+				columns.innerHTML=checkfields;
+				writePageCount(start);
+				var winWidth=$('#panel-main').width();
+				var visible_data = makeData(csvdata);
+				var count=0;
+				//alert(labels);
+				if(labels.length>1){
+					for(var j=1; j<labels.length; j++){//labels.length
+						//alert(labels[j]);
+						drawAxis = true;
+						panel.push(makeGraph('#panel-main', visible_data, drawAxis, count, winWidth, j));
+						count++;
+					}
+					
+					activate();
+				}
+				else{
+					$('#panel-main').html("<h1>Vista is potting time series data. Vista cannot support this product data yet.</h1>");
+					
+				}
+				
+			}
+			else{
+				$('#panel-main').html("<h1>This data product doesn't have data table or cannot read data table. Please check the Label and data file.</h1>");
+				//alert("This data product doesn't have data table or cannot read data table. Please check the Label and data file.");
+			}
+			
+			
+		}
+		else{
+			$('#panel-main').html("<h1>Cannot find table column information.</h1>");
+			//alert("Cannot find table column information.");
+			
+		}
+		
+	}
+	
+}
+else{
+	alert("Identifier is not defined");
+}
+function changeDataSize(changes){
+	var rows =$("#rows").val();
+	var value=rows;
+	if(changes=="-"){
+		value = parseInt(rows)-view_data_count;
+		if(value>view_data_count){
+			$("#rows").val(value);
+		}
+		
+	}
+	else if(changes=="+"){
+		value = parseInt(rows)+view_data_count;
+		if( value <recordCounts){
+			$("#rows").val(value);
+		}
+		
+	}
+	rows =$("#rows").val()
+	$("#start").val(1);
+	$("#ends").val(rows);
+	writePageCount(1);
+	updateDataGraphs(1, rows);
+}
+
+window.onresize = function(event) {
+	//var pannel=window.innerWidth;
+	var winWidth=$('#panel-main').width();
+	
+    for(p in panel){
+    	bandID = 'band-' + p;
+    	panelID = 'panel-' +p;
+    	menuID = 'menu-' + p;
+    
+    	var div=document.getElementById(bandID);
+    	if(div){	
+	    	div.style.width=winWidth+'px';
+	    	div.style.minWidth="800px";
+    	}
+    	div1 =document.getElementById(panelID);
+	    div1.style.width=(winWidth-260)+'px';;
+	    div1.style.minWidth="540px";
+    }
+};
+$('input[name="field"]').change(function() {
+	var p = $(this).attr('panel');
+ 	
+	panel[p].setVisibility((this.value - 1), this.checked);
+ 	// Determine yAxis label based on visible traces
+ 	yLabel = "";
+ 	delim = "";
+	//working having items 
+ 	visib = panel[p].visibility();
+	
+	var index =parseInt(p)+1;
+	var hasItems=false;
+	var findIndex=0;
+	for(var i=0; i<info.columns.length; i++ ){
+		if(labels[index]==info.columns[i].name) {
+			if(typeof(info.columns[i].items)!="undefined"){
+				hasItems=true;
+				findindex=i;
+				i=info.columns.length;
+			}
+		}
+	}
+	for(n in labels) {
+	    if(n == 0) continue; // X-axis
+	    	
+	    if(visib[n-1]) { yLabel += delim + labels[n]; delim = ", "; }
+	 }
+	//panel[p].updateOptions( { ylabel : yLabel});
+	
+    
+});
+</script>	
+</body>
+
+
+</html>
